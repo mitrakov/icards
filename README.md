@@ -1,2 +1,3 @@
-# icards
-iCards Flutter app
+# iCards
+
+Flutter project for iOS.
