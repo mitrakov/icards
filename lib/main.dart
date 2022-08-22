@@ -7,7 +7,8 @@ import 'package:scoped_model/scoped_model.dart';
 
 void main() {
   final model = MyModel();
-  model.load();
+  model.loadAll();
+  model.currentFile = "spanish.txt";
   runApp(ScopedModel<MyModel>(model: model, child: MyApp()));
 }
 
@@ -40,11 +41,11 @@ class _MainPageState extends State<MainPage> {
         body: GestureDetector(
           onTap: nextWord,
           child: Center(
-            child: Text(model.data.isNotEmpty ? model.data[n].item2 : "Loading...", style: Theme.of(context).textTheme.headline5),
+            child: Text(model.tokens.isNotEmpty ? model.tokens[n].item2 : "Loading...", style: Theme.of(context).textTheme.headline5),
           ),
         ),
         floatingActionButton: FloatingActionButton(
-          onPressed: () => Utils.showMessage(context, model.data[n].item2, model.data[n].item1),
+          onPressed: () => Utils.showMessage(context, model.tokens[n].item2, model.tokens[n].item1),
           tooltip: "Show hint",
           child: const Icon(Icons.help_rounded)
         ),

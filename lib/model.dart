@@ -5,14 +5,41 @@ import 'dart:math';
 import 'package:scoped_model/scoped_model.dart';
 import 'package:tuple/tuple.dart';
 import 'package:http/http.dart' as http;
+import 'package:html/parser.dart';
+
+typedef TokenPair = Tuple2<String, String>;
+typedef TokenPairs = List<TokenPair>;
+typedef File2Tokens = Map<String, TokenPairs>;
 
 class MyModel extends Model {
-  final List<Tuple2<String, String>> _data = List.empty(growable: true);
-  List<Tuple2<String, String>> get data => _data;
+  final String _URL = "http://mitrakoff.com:2000";      // TODO
+  final Set<String> _stopKeywords = {"RUS"};            // TODO
+  final Random _random = Random(DateTime.now().millisecondsSinceEpoch);
+  final File2Tokens _data = {"": []};
+  String _currentFile = "";
 
-  void load() async {
-    final response = await http.get(Uri.parse("http://mitrakoff.com:2000/spanish.txt"));      // TODO
+  // getters and setters
+  List<String> get files => _data.keys.toList();
+  TokenPairs get tokens => _data[_currentFile] ?? [];
+  set currentFile(String s) {_currentFile = s;}
+
+  // functions
+  void loadAll() async {
+    final response = await http.get(Uri.parse(_URL));
     if (response.statusCode == 200) {
+      final htmlDoc = parse(response.body);
+      final elements = htmlDoc.getElementsByTagName("a");
+      for (final element in elements) {
+        _loadFile(element.innerHtml);
+      }
+      notifyListeners();
+    } else throw Exception("Cannot load files from $_URL");
+  }
+
+  void _loadFile(String fileName) async {
+    final response = await http.get(Uri.parse("$_URL/$fileName"));
+    if (response.statusCode == 200) {
+      _data.putIfAbsent(fileName, () => []);
       final body = response.body;
       final lines = body.split("\n");
       for (final line in lines) {
@@ -22,15 +49,14 @@ class MyModel extends Model {
           final token2 = tokens[2].trim();
           if (token1.isNotEmpty && token2.isNotEmpty) {
             if (!token1.contains("---") && !token2.contains("---")) {
-              if (token2 != "RUS") {                                            // TODO
-                _data.add(Tuple2(token1, token2));
+              if (!_stopKeywords.contains(token2)) {
+                _data[fileName]?.add(Tuple2(token1, token2));
               }
             }
           }
         }
       }
-      _data.shuffle(Random(DateTime.now().millisecondsSinceEpoch));
-      notifyListeners();
-    } else throw Exception("Cannot load file spanish.txt");
+      _data[fileName]?.shuffle(_random);
+    } else throw Exception("Cannot load file $_URL/$fileName");
   }
 }
