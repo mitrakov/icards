@@ -1,6 +1,7 @@
 // ignore_for_file: use_key_in_widget_constructors
 
 import 'package:flutter/material.dart';
+import 'package:icards/filesview.dart';
 import 'package:icards/model.dart';
 import 'package:icards/utils.dart';
 import 'package:scoped_model/scoped_model.dart';
@@ -8,7 +9,6 @@ import 'package:scoped_model/scoped_model.dart';
 void main() {
   final model = MyModel();
   model.loadAll();
-  model.currentFile = "spanish.txt";
   runApp(ScopedModel<MyModel>(model: model, child: MyApp()));
 }
 
@@ -18,44 +18,40 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: "iCards",
       theme: ThemeData(primarySwatch: Colors.green),
-      home: MainPage(),
-    );
-  }
-}
-
-class MainPage extends StatefulWidget {
-  @override
-  State<MainPage> createState() => _MainPageState();
-}
-
-class _MainPageState extends State<MainPage> {
-  int n = 0;
-
-  @override
-  Widget build(BuildContext context) {
-    return ScopedModelDescendant<MyModel>(builder: (context, child, model) {
-      return Scaffold(
-        appBar: AppBar(
-          title: const Text("Tommy's iCards"),
-        ),
-        body: GestureDetector(
-          onTap: nextWord,
-          child: Center(
-            child: Text(model.tokens.isNotEmpty ? model.tokens[n].item2 : "Loading...", style: Theme.of(context).textTheme.headline5),
+      home: ScopedModelDescendant<MyModel>(builder: (context, child, model) {
+        return Scaffold(
+          appBar: AppBar(title: const Text("Tommy's iCards")),
+          body: GestureDetector(
+            onTap: model.nextToken,
+            child: Center(
+              child: Text(
+                model.token.item2.isNotEmpty ? model.token.item2 : "Press ☰ and choose file...",
+                style: Theme.of(context).textTheme.headline5
+              ),
+            ),
           ),
-        ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () => Utils.showMessage(context, model.tokens[n].item2, model.tokens[n].item1),
-          tooltip: "Show hint",
-          child: const Icon(Icons.help_rounded)
-        ),
-      );
-    });
-  }
-
-  void nextWord() {
-    setState(() {
-      n++;
-    });
+          drawer: Drawer(
+            child: Column(children: [
+              SizedBox(
+                height: 100,
+                width: double.infinity,
+                child: DrawerHeader(
+                  decoration: const BoxDecoration(color: Colors.lightGreen),
+                  child: Text("Files", style: Theme.of(context).textTheme.headline4)
+                ),
+              ),
+              FilesLeftDrawer(),
+            ]),
+          ),
+          floatingActionButton: FloatingActionButton(
+            tooltip: "Show hint",
+            child: const Icon(Icons.help_rounded),
+            onPressed: () {
+              if (model.token.item1.isNotEmpty) Utils.showMessage(context, model.token.item2, model.token.item1);
+            },
+          ),
+        );
+      }),
+    );
   }
 }

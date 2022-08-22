@@ -1,29 +1,44 @@
 // ignore_for_file: curly_braces_in_flow_control_structures, avoid_print
-
 import 'dart:math';
-
 import 'package:scoped_model/scoped_model.dart';
 import 'package:tuple/tuple.dart';
 import 'package:http/http.dart' as http;
 import 'package:html/parser.dart';
 
 typedef TokenPair = Tuple2<String, String>;
-typedef TokenPairs = List<TokenPair>;
-typedef File2Tokens = Map<String, TokenPairs>;
 
 class MyModel extends Model {
+  // vals
   final String _URL = "http://mitrakoff.com:2000";      // TODO
   final Set<String> _stopKeywords = {"RUS"};            // TODO
   final Random _random = Random(DateTime.now().millisecondsSinceEpoch);
-  final File2Tokens _data = {"": []};
+  final Map<String, List<TokenPair>> _data = {}; // files -> tokens
+
+  // vars
   String _currentFile = "";
+  int _currentToken = 0;
 
   // getters and setters
   List<String> get files => _data.keys.toList();
-  TokenPairs get tokens => _data[_currentFile] ?? [];
-  set currentFile(String s) {_currentFile = s;}
+  TokenPair get token {
+    final list = _data[_currentFile] ?? [];
+    if (_currentToken >= list.length)
+      _currentToken = 0;
+    return list.isEmpty ? const Tuple2("", "") : list[_currentToken];
+  }
+  set currentFile(String s) {
+    _currentFile = s;
+    _currentToken = 0;
+    _data[s]?.shuffle(_random);
+    notifyListeners();
+  }
 
   // functions
+  void nextToken() {
+    _currentToken++;
+    notifyListeners();
+  }
+
   void loadAll() async {
     final response = await http.get(Uri.parse(_URL));
     if (response.statusCode == 200) {
@@ -32,7 +47,6 @@ class MyModel extends Model {
       for (final element in elements) {
         _loadFile(element.innerHtml);
       }
-      notifyListeners();
     } else throw Exception("Cannot load files from $_URL");
   }
 
@@ -56,7 +70,6 @@ class MyModel extends Model {
           }
         }
       }
-      _data[fileName]?.shuffle(_random);
     } else throw Exception("Cannot load file $_URL/$fileName");
   }
 }
