@@ -1,6 +1,7 @@
 // ignore_for_file: use_key_in_widget_constructors
 
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:icards/filesview.dart';
 import 'package:icards/model.dart';
 import 'package:icards/utils.dart';
@@ -22,7 +23,12 @@ class MyApp extends StatelessWidget {
         return Scaffold(
           appBar: AppBar(title: const Text("Tommy's iCards")),
           body: GestureDetector(
-            onTap: model.nextToken,
+            onTap: () {
+              if (model.token.item1.isNotEmpty) {
+                Fluttertoast.showToast(msg: model.token.item1, gravity: ToastGravity.BOTTOM, backgroundColor: Colors.grey);
+              }
+              model.nextToken();
+            },
             child: Center(
               child: Text(
                 model.token.item2.isNotEmpty ? model.token.item2 : "Press ☰ and choose file...",

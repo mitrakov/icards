@@ -19,7 +19,11 @@ class MyModel extends Model {
   int _currentToken = 0;
 
   // getters and setters
-  List<String> get files => _data.keys.toList();
+  List<String> get files {
+    final list = _data.keys.toList();
+    list.sort();
+    return list;
+  }
   TokenPair get token {
     final list = _data[_currentFile] ?? [];
     if (_currentToken >= list.length)
