@@ -9,8 +9,8 @@ typedef TokenPair = Tuple2<String, String>;
 
 class MyModel extends Model {
   // vals
-  final String _URL = "http://mitrakoff.com:2000";      // TODO
-  final Set<String> _stopKeywords = {"RUS"};            // TODO
+  final String _URL = "http://mitrakoff.com:2000/icards"; // TODO
+  final Set<String> _stopKeywords = {"RUS"};              // TODO
   final Random _random = Random(DateTime.now().millisecondsSinceEpoch);
   final Map<String, List<TokenPair>> _data = {}; // files -> tokens
 
@@ -49,7 +49,7 @@ class MyModel extends Model {
       final htmlDoc = parse(response.body);
       final elements = htmlDoc.getElementsByTagName("a");
       for (final element in elements) {
-        _loadFile(element.innerHtml);
+        _loadFile(element.text);
       }
     } else throw Exception("Cannot load files from $_URL");
   }
